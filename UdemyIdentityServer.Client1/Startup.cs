@@ -23,10 +23,20 @@ namespace UdemyIdentityServer.Client1
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            //Auth server ile haberleşmemiz için yazılan client kodu
             services.AddAuthentication(opts =>
             {
                 opts.DefaultScheme = "Cookies";
                 opts.DefaultChallengeScheme = "oidc";
+            }).AddCookie("Cookies").AddOpenIdConnect("oidc", opts =>
+            {
+                opts.SignInScheme = "Cookies";
+                opts.Authority = "https://localhost:5001";//Token dağıtan yetkili yer.
+                opts.ClientId = "Client1-Mvc";
+                opts.ClientSecret = "secret";
+                //Auth kodu(string) ve içinde sadece id olan token doğrulama için bir JWT token alıyoruz.
+                opts.ResponseType = "code id_token";
+                opts.GetClaimsFromUserInfoEndpoint = true;//Userin claimdeki tüm bilgilerini gösterir.Normalde şişirmemek için göstermez
             });
 
             services.AddControllersWithViews();
@@ -46,10 +56,13 @@ namespace UdemyIdentityServer.Client1
                 app.UseHsts();
             }
             app.UseHttpsRedirection();
+            
             app.UseStaticFiles();
 
             app.UseRouting();
-
+            
+            app.UseAuthentication();
+            
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

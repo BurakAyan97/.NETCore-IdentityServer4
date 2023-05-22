@@ -1,4 +1,5 @@
-﻿using IdentityServer4.Models;
+﻿using IdentityServer4;
+using IdentityServer4.Models;
 using IdentityServer4.Test;
 using System.Collections;
 using System.Collections.Generic;
@@ -68,7 +69,17 @@ namespace UdemyIdentityServer.AuthServer
                     AllowedGrantTypes=GrantTypes.ClientCredentials, 
                     //Hangi client hangi apide hangi yetkilere sahip olacak propertysi.
                     AllowedScopes=new[] {"api1.read","api1.update","api2.write","api2.update"},
-                }
+                },
+                 new Client()
+                 {
+                     ClientId="Client1-Mvc",
+                     RequirePkce=false,//Client secretı güvenli bir şekilde tutuyoruz şuan.Mobil veya SPA olsa true.
+                     ClientName="Client 1 app mvc uygulaması",
+                     ClientSecrets=new[] {new Secret("secret".Sha256())},
+                     AllowedGrantTypes=GrantTypes.Hybrid,//Code ve id_token istediğimiz için hybrid
+                     RedirectUris=new List<string>{ "https://localhost:5006/signin-oidc" },//Token alma görevini gerçekleştiren url.İstek yapınca nereye döneceğini belirler
+                     AllowedScopes={IdentityServerConstants.StandardScopes.OpenId,IdentityServerConstants.StandardScopes.Profile}
+                 }
             };
         }
 
@@ -77,7 +88,7 @@ namespace UdemyIdentityServer.AuthServer
             //OAuth 2.0 profile claims yazıp bu başlıkların neleri içerdiğine bakabilirsin.Ezberleme
             return new List<IdentityResource>()
             {
-                //Zorunludur.Kullanıcının ID'si anlamına gelir.Token kimin içindir bilmemiz lazım.
+                //Üyelik sistemi varsa <orunludur.Kullanıcının ID'si anlamına gelir.Token kimin içindir bilmemiz lazım.
                 new IdentityResources.OpenId(),
                 //Kullanıcının hangi bilgilerine erişebilirsin muhabbeti.
                 new IdentityResources.Profile()
@@ -89,9 +100,9 @@ namespace UdemyIdentityServer.AuthServer
             return new List<TestUser>()
             {
                 new TestUser()
-                { SubjectId = "1", Username = "reposer", Password = "password", 
-                  Claims = new List<Claim>() { 
-                  new Claim("given_name", "Burak"), 
+                { SubjectId = "1", Username = "reposer", Password = "password",
+                  Claims = new List<Claim>() {
+                  new Claim("given_name", "Burak"),
                   new Claim("family_name", "Ayan") },
                 },
                 new TestUser()
