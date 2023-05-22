@@ -23,6 +23,12 @@ namespace UdemyIdentityServer.Client1
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddAuthentication(opts =>
+            {
+                opts.DefaultScheme = "Cookies";
+                opts.DefaultChallengeScheme = "oidc";
+            });
+
             services.AddControllersWithViews();
         }
 

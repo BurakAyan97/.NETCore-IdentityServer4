@@ -26,7 +26,26 @@ namespace UdemyIdentityServer.API1
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme,);
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opts =>
+            {
+                //Yetkili kim?Tokenı kim yayınlıyor?
+                opts.Authority = "https://localhost:5001";
+                //Bana bir token gelince içinde {aşağıdaki}nin olduğunu bileyim
+                opts.Audience = "resource_api1";
+            });
+
+            services.AddAuthorization(opts =>
+            {//Özel kontratlar hazırlıyoruz. Gelen yetkilendirme içinde aşağıdaki claim varsa izin veriyoruz kullanmasına.
+                opts.AddPolicy("ReadProduct", policy =>
+                {
+                    policy.RequireClaim("scope", "api1.read");
+                });
+
+                opts.AddPolicy("UpdateOrCreate", policy =>
+                {
+                    policy.RequireClaim("scope", new[] { "api1.update", "api1.create" });
+                });
+            });
 
             services.AddControllers();
         }
@@ -42,6 +61,8 @@ namespace UdemyIdentityServer.API1
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            app.UseAuthentication();
 
             app.UseAuthorization();
 

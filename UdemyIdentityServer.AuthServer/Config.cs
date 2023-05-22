@@ -1,6 +1,8 @@
 ﻿using IdentityServer4.Models;
+using IdentityServer4.Test;
 using System.Collections;
 using System.Collections.Generic;
+using System.Security.Claims;
 
 namespace UdemyIdentityServer.AuthServer
 {
@@ -11,11 +13,17 @@ namespace UdemyIdentityServer.AuthServer
         {
             return new List<ApiResource>()
             {
-                new ApiResource("resource_api1")
-                {Scopes={"api1.read","api1.write","api1.update"}},
                 //Scopeslarda hangi apinin hangi yetkilere sahip olacağını tanıtıyoruz.
+                new ApiResource("resource_api1")//BasicAuth için ID değeri
+                {
+                    Scopes={"api1.read","api1.write","api1.update"},
+                    ApiSecrets=new[]{new Secret("secretapi1".Sha256())}//BasicAuth için şifre değeri
+                },
                 new ApiResource("resource_api2")
-                {Scopes={"api2.read","api2.write","api2.update"}},
+                {
+                    Scopes={"api2.read","api2.write","api2.update"},
+                    ApiSecrets=new[]{new Secret("secretapi1".Sha256()) }
+                }
             };
         }
 
@@ -59,9 +67,39 @@ namespace UdemyIdentityServer.AuthServer
                     //Kullanıcı bilgisi taşımayacak sadece client-api bağlantısı için izinler olacak. 4 farklı izin tipi vardı. Bu token gerektirmeyen tek çeşidi.
                     AllowedGrantTypes=GrantTypes.ClientCredentials, 
                     //Hangi client hangi apide hangi yetkilere sahip olacak propertysi.
-                    AllowedScopes=new[] {"api1.read","api2.write","api2.update"},
-
+                    AllowedScopes=new[] {"api1.read","api1.update","api2.write","api2.update"},
                 }
+            };
+        }
+
+        public static IEnumerable<IdentityResource> GetIdentityResources()
+        {
+            //OAuth 2.0 profile claims yazıp bu başlıkların neleri içerdiğine bakabilirsin.Ezberleme
+            return new List<IdentityResource>()
+            {
+                //Zorunludur.Kullanıcının ID'si anlamına gelir.Token kimin içindir bilmemiz lazım.
+                new IdentityResources.OpenId(),
+                //Kullanıcının hangi bilgilerine erişebilirsin muhabbeti.
+                new IdentityResources.Profile()
+            };
+        }
+
+        public static IEnumerable<TestUser> GetUsers()
+        {
+            return new List<TestUser>()
+            {
+                new TestUser()
+                { SubjectId = "1", Username = "reposer", Password = "password", 
+                  Claims = new List<Claim>() { 
+                  new Claim("given_name", "Burak"), 
+                  new Claim("family_name", "Ayan") },
+                },
+                new TestUser()
+                { SubjectId = "2", Username = "zafer61", Password = "password",
+                  Claims = new List<Claim>() {
+                  new Claim("given_name", "Zafer"),
+                  new Claim("family_name", "Ayan") },
+                },
             };
         }
     }

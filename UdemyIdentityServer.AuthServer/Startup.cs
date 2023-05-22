@@ -28,7 +28,11 @@ namespace UdemyIdentityServer.AuthServer
                 .AddInMemoryApiScopes(Config.GetApiScopes())
                 .AddInMemoryClients(Config.GetClients())
                 // Development esnasında Public ve private key oluşturur JWT token için.
+                .AddInMemoryIdentityResources(Config.GetIdentityResources())
+                .AddTestUsers(Config.GetUsers().ToList())
                 .AddDeveloperSigningCredential();
+
+
             //.AddSigningCredential(); //Publish ederken bu kodu kullanıcaz.Azurede tutucaz bilgileri.
 
             services.AddControllersWithViews();
