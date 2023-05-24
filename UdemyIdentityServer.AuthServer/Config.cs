@@ -49,6 +49,7 @@ namespace UdemyIdentityServer.AuthServer
             //OAuth 2.0 profile claims yazıp bu başlıkların neleri içerdiğine bakabilirsin.Ezberleme
             return new List<IdentityResource>()
             {
+                new IdentityResources.Email(),
                 //Üyelik sistemi varsa <orunludur.Kullanıcının ID'si anlamına gelir.Token kimin içindir bilmemiz lazım.
                 new IdentityResources.OpenId(),
                 //Kullanıcının hangi bilgilerine erişebilirsin muhabbeti.
@@ -119,7 +120,7 @@ namespace UdemyIdentityServer.AuthServer
                      AllowedGrantTypes=GrantTypes.Hybrid,//Code ve id_token istediğimiz için hybrid
                      RedirectUris=new List<string>{ "https://localhost:5006/signin-oidc" },//Token alma görevini gerçekleştiren url.İstek yapınca nereye döneceğini belirler
                      PostLogoutRedirectUris=new List<string>{ "https://localhost:5006/signout-callback-oidc" },//Çıkış yapınca nereye dönsün.
-                     AllowedScopes={IdentityServerConstants.StandardScopes.OpenId,IdentityServerConstants.StandardScopes.Profile,"api1.read",IdentityServerConstants.StandardScopes.OfflineAccess,"CountryAndCity","Roles"},
+                     AllowedScopes={IdentityServerConstants.StandardScopes.Email,IdentityServerConstants.StandardScopes.OpenId,IdentityServerConstants.StandardScopes.Profile,"api1.read",IdentityServerConstants.StandardScopes.OfflineAccess,"CountryAndCity","Roles"},
                      AccessTokenLifetime=2*60*60,
                      AllowOfflineAccess=true,//Access tokenın ömrü bittiğinde yenisinin yapılmasını sağlar refresh token sayesinde.(Offline olunsa bile)
                      RefreshTokenUsage=TokenUsage.ReUse,//Refresh tokenı birden fazla kez kullan
@@ -143,9 +144,22 @@ namespace UdemyIdentityServer.AuthServer
                      RefreshTokenExpiration=TokenExpiration.Absolute,
                      AbsoluteRefreshTokenLifetime=(int)(DateTime.Now.AddDays(60)-DateTime.Now).TotalSeconds,
                      RequireConsent=true,
+                },
+                new Client()
+                {
+                     ClientId="Client1-ResourceOwner-Mvc",
+                     ClientName="Client 1 app mvc uygulaması",
+                     ClientSecrets=new[] {new Secret("secret".Sha256())},
+                     AllowedGrantTypes=GrantTypes.ResourceOwnerPassword,
+                     AllowedScopes= {IdentityServerConstants.StandardScopes.Email,IdentityServerConstants.StandardScopes.OpenId,IdentityServerConstants.StandardScopes.Profile,"api1.read",IdentityServerConstants.StandardScopes.OfflineAccess,"CountryAndCity","Roles"},
+                     AccessTokenLifetime=2*60*60,
+                     AllowOfflineAccess=true,
+                     RefreshTokenUsage=TokenUsage.ReUse,
+                     RefreshTokenExpiration=TokenExpiration.Absolute,
+                     AbsoluteRefreshTokenLifetime=(int)(DateTime.Now.AddDays(60)-DateTime.Now).TotalSeconds,
                 }
-
             };
         }
     }
 }
+

@@ -27,10 +27,17 @@ namespace UdemyIdentityServer.Client1.Controllers
             return View();
         }
 
-        public async Task LogOut()
+        //Identity Servera bağlandığımız zamanlar kullanıyoruz.
+        //public async Task LogOut()
+        //{
+        //    await HttpContext.SignOutAsync("Cookies");//Client1 den çıkış yaptık.
+        //    await HttpContext.SignOutAsync("oidc");//OpenID den çıkış yaptık.
+        //}
+
+        public async Task<IActionResult> LogOut()
         {
             await HttpContext.SignOutAsync("Cookies");//Client1 den çıkış yaptık.
-            await HttpContext.SignOutAsync("oidc");//OpenID den çıkış yaptık.
+            return RedirectToAction("Index", "Home");
         }
 
         public async Task<IActionResult> GetRefreshToken()
@@ -42,13 +49,13 @@ namespace UdemyIdentityServer.Client1.Controllers
 
 
             RefreshTokenRequest refreshTokenRequest = new RefreshTokenRequest();
-            refreshTokenRequest.ClientId = _configuration["Client1Mvc:ClientId"];
-            refreshTokenRequest.ClientSecret = _configuration["Client1Mvc:ClientSecret"];
+            refreshTokenRequest.ClientId = _configuration["ClientResourceOwner:ClientId"];
+            refreshTokenRequest.ClientSecret = _configuration["ClientResourceOwner:ClientSecret"];
             refreshTokenRequest.RefreshToken = refreshToken;
             refreshTokenRequest.Address = disco.TokenEndpoint;
 
             var token = await httpClient.RequestRefreshTokenAsync(refreshTokenRequest);
-            
+
             if (token.IsError)
             {
                 //yönlendirme yap
@@ -73,10 +80,10 @@ namespace UdemyIdentityServer.Client1.Controllers
             return RedirectToAction("Index");
         }
 
-        [Authorize(Roles ="admin")]
-        public IActionResult AdminAction() 
+        [Authorize(Roles = "admin")]
+        public IActionResult AdminAction()
         {
-            return View(); 
+            return View();
         }
 
         [Authorize(Roles = "customer")]

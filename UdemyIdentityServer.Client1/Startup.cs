@@ -51,6 +51,7 @@ namespace UdemyIdentityServer.Client1
                 opts.Scope.Add("offline_access");//Access tokenın ömrü bittiğinde yenisinin yapılmasını sağlar refresh token sayesinde.AuthServerda yazılması lazım tabi.
                 opts.Scope.Add("CountryAndCity");
                 opts.Scope.Add("Roles");
+                opts.Scope.Add("email");//Harf duyarlılığı var dikkat et!!
                 //Custom claim yaptığımız için maplememiz lazım.Identityserver tanımıyor yoksa.
                 opts.ClaimActions.MapUniqueJsonKey("country", "country");
                 opts.ClaimActions.MapUniqueJsonKey("city", "city");
@@ -58,7 +59,8 @@ namespace UdemyIdentityServer.Client1
 
                 opts.TokenValidationParameters = new TokenValidationParameters
                 {
-                    RoleClaimType = "role" //Rol bazlı yetkilendirme varsa bu arkadaş bulup doğruluyor
+                    RoleClaimType = "role" ,//Rol bazlı yetkilendirme varsa bu arkadaş bulup doğruluyor
+                    NameClaimType = "name" ,//User.Identity.Name yaparak usernamei alabilmemizi sağlar.
                 };
             });
 

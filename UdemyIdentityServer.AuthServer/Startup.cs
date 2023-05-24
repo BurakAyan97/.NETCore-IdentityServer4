@@ -1,13 +1,18 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using UdemyIdentityServer.AuthServer.Models;
+using UdemyIdentityServer.AuthServer.Repository;
+using UdemyIdentityServer.AuthServer.Services;
 
 namespace UdemyIdentityServer.AuthServer
 {
@@ -23,14 +28,36 @@ namespace UdemyIdentityServer.AuthServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddScoped<ICustomUserRepository, CustomUserRepository>();
+
+            services.AddDbContext<CustomDbContext>(opts => opts.UseSqlServer(Configuration.GetConnectionString("LocalDB")));
+
+            var assemblyName = typeof(Startup).GetTypeInfo().Assembly.GetName().Name;
+
             services.AddIdentityServer()
-                .AddInMemoryApiResources(Config.GetApiResources())
-                .AddInMemoryApiScopes(Config.GetApiScopes())
-                .AddInMemoryClients(Config.GetClients())
-                // Development esnasında Public ve private key oluşturur JWT token için.
-                .AddInMemoryIdentityResources(Config.GetIdentityResources())
-                .AddTestUsers(Config.GetUsers().ToList())
-                .AddDeveloperSigningCredential();
+                .AddConfigurationStore(opts =>
+                {
+                    //Client resource ve scopelar databaseye kaydedilcek. Identiyserver kendi halledicek bu db özelliği ile.
+                    opts.ConfigureDbContext = c => c.UseSqlServer(Configuration.GetConnectionString("LocalDB"), sqlopts => sqlopts.MigrationsAssembly(assemblyName));
+                })
+                .AddOperationalStore(opts =>
+                {
+                    //refresh token ve authorize code databaseye kaydedilcek. Identiyserver kendi halledicek bu db özelliği ile.
+                    opts.ConfigureDbContext = c => c.UseSqlServer(Configuration.GetConnectionString("LocalDB"), sqlopts => sqlopts.MigrationsAssembly(assemblyName));
+                })
+                                //Databaseye verileri gönderdikten sonra aşağıdaki metotlara gerek kalmadı. Aşağıdaki metotlar memoryde tutuyordu dataları restart atınca değişiyordu.---------------------------------------------------
+                                /*.AddInMemoryApiResources(Config.GetApiResources())
+                                .AddInMemoryApiScopes(Config.GetApiScopes())
+                                .AddInMemoryClients(Config.GetClients())
+                                // Development esnasında Public ve private key oluşturur JWT token için.
+                                .AddInMemoryIdentityResources(Config.GetIdentityResources())
+                                //.AddTestUsers(Config.GetUsers().ToList())//Databasede gerçek üyeler var diye yoruma aldım.
+                                --------------------------------------------------------------------------------------------------*/
+                                .AddDeveloperSigningCredential()
+                //Claimler bu sayede ekleniyor Databasedeki datalara.
+                .AddProfileService<CustomProfileService>()
+                //BU akış tipiyle istek yapıldığı zaman metod çalışacak ve ona göre token dönecek veya dönmeyecek
+                .AddResourceOwnerValidator<ResourceOwnerPasswordValidator>();
 
 
             //.AddSigningCredential(); //Publish ederken bu kodu kullanıcaz.Azurede tutucaz bilgileri.
